@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        span {
+            display: block;
+            z-index: 50;
+        }
+
+        div.station {
+            position: relative;
+            width: 200px;
+            height: 150px;
+            z-index: 1;
+            justify-content: center;
+            /* display: flex; */
+            text-align: center;
+            align-items: center;
+        }
+
+        div.map {
+            width: 200px;
+            height: 50px;
+            position: relative;
+        }
+
+        span.start {
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            background-color: rgb(102, 142, 230);
+            transform: translateY(10px);
+            position: absolute;
+        }
+
+        span.end {
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            background-color: rgb(102, 142, 230);
+            position: absolute;
+        }
+
+        span.end-line {
+            background-color: rgb(102, 142, 230);
+            width: 170px;
+            height: 20px;
+            position: absolute;
+        }
+
+        span.start-line {
+            background-color: rgb(102, 142, 230);
+            transform: translateY(25px) translateX(30px);
+            width: 170px;
+            height: 20px;
+            position: absolute;
+        }
+
+        p.station-text {
+            font-size: 20px;
+        }
+
+        span.middle-line {
+            width: 100%;
+            background-color: rgb(102, 142, 230);
+            height: 20px;
+        }
+
+        span.middle {
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            background-color: rgb(102, 142, 230);
+            transform: translateY(-10px) translateX(80px);
+            position: absolute;
+        }
+
+        span.middle-circle {
+            height: 30px;
+            width: 30px;
+            border-radius: 50%;
+            background-color: white;
+            transform: translateX(10px) translateY(10px);
+            position: absolute;
+        }
+
+        div.flex-wrap {
+            width: 750px !important;
+            max-width: 750px;
+        }
+
+        div.middle-station {
+            transform: translateY(25px);
+        }
+
+        span.connect-right {
+            width: 20px;
+            height: 170px;
+            background-color: rgb(102, 142, 230);
+            position: absolute;
+            transform: translateX(190px)translateY(-20px);
+            border-radius: 0 10px 10px 0;
+        }
+
+        span.connect-left {
+            width: 20px;
+            height: 170px;
+            background-color: rgb(102, 142, 230);
+            position: absolute;
+            transform: translateX(-20px) translateY(-20px);
+            border-radius: 10px 0 0 10px;
+        }
+
+        p.start-end {
+            width: auto;
+            font-size: 20px;
+            transform: translateY(70px);
+        }
+
+        p.middle {
+            font-size: 20px;
+            transform: translateY(25px);
+        }
+
+        div.end {
+            right: 0;
+            position: relative;
+        }
+
+        .reverse {
+            flex-direction: row-reverse;
+            transform: translateX(-150px);
+        }
+        div#check{
+            width: 180px;
+            height: auto;
+            transform: translateY(50px) translateX(-40%);
+            z-index: 1000;
+            background: #fff;
+            position: absolute;
+        }
+        p.bus-start-end{
+            width: auto;
+            position: absolute;
+            align-items: center;
+            margin: auto;
+            font-size: 16px;
+            top: -30%;
+            left: 50%;
+            z-index: 1;
+        }
+        p.bus-middle {
+            align-items: center;
+            position: absolute;
+            margin: auto;
+            font-size: 16px;
+            top: 50% ;
+            left: 50% ;
+            transform: translate(-50%, -140px);
+            z-index: 1;
+        }
+        p{
+            margin: auto;
+            position: relative;
+            z-index: -1;
+        }
+        .edit{
+            top: 10px;
+
+        }
+    </style>
+</head>
+<link rel="stylesheet" href="bootstrap.css">
+<body>
+<div class="d-flex flex-wrap mx-auto shadow p-5 mt-5 card" id="map">
+</div>
+<script src="jquery.js"></script>
+<script src="bootstrap.js"></script>
+<script>
+    let size = 3;
+    let layer = 1;
+    let map = '';
+    GetStation();
+    function GetStation() {
+        $.get("fetch/station.php", function (res) {
+            let stations = JSON.parse(res);
+            let rows = Math.ceil(stations.length / size);
+            console.log(rows, stations);
+            stations.forEach((station, idx) => {
+                if (idx % size === 0) {
+                    if (idx !== 0) {
+                        map += `</div>`;
+                        layer++;
+                    }
+                    let reverseClass = layer % 2 === 0 ? 'reverse' : '';
+                    map += `<div class="d-flex flex-wrap ${reverseClass}">`;
+                }
+                if (idx === 0) {
+                    map += `
+                    <div class="station">
+                        <p class="bus-start-end ${station.class}">${station.bus}</p>    
+                        <span class="start station" data-id="${station.id}"></span>    
+                        <span class="start-line"></span>    
+                        <p class="start-end">${station.station}</p>    
+                    </div>
+                    `;
+                } else if (idx % size === size - 1 || idx === stations.length - 1) {
+                    if (layer < rows) {
+                        map += `
+                        <div class="station middle-station">
+                            <p class="bus-middle ${station.class}">${station.bus}</p>    
+                            <span class="middle station" data-id="${station.id}"><span class="middle-circle"></span></span>    
+                            <span class="middle-line"></span> 
+                            ${layer % 2 === 1 ? '<span class="connect-right"></span>' : '<span class="connect-left"></span>'}
+                            <p class="middle">${station.station}</p>    
+                        </div>
+                        `;
+                    } else {
+                        if (layer % 2 == 1) {
+                            map += `
+                            <div class="station end">
+                                <p class="bus-start-end ${station.class}">${station.bus}</p>
+                                <span class="end station"  data-id="${station.id}" style="transform: translateY(10px) translateX(120px);"></span>    
+                                <span class="end-line" style="transform: translateY(25px) translateX(-30px);"></span>    
+                                <p class="start-end">${station.station}</p>    
+                                </div>
+                                `;
+                            } else {
+                                map += `
+                                <div class="station end">
+                                    <p class="bus-start-end ${station.class}">${station.bus}</p>
+                                    <span class="end station" data-id="${station.id}" style="transform: translateY(10px);"></span>    
+                                    <span class="end-line" style="transform: translateY(25px) translateX(30px);"></span>    
+                                <p class="start-end">${station.station}</p>    
+                            </div>
+                            `;
+                        }
+                    }
+                } else {
+                    map += `
+                    <div class="station middle-station">
+                        <p class="bus-middle ${station.class}">${station.bus}</p>
+                        <span class="middle station" data-id="${station.id}"><span class="middle-circle"></span></span>    
+                        <span class="middle-line"></span>    
+                        <p class="middle">${station.station}</p>    
+                    </div>
+                    `;
+                }
+                if (idx === stations.length - 1) {
+                    map += `</div>`;
+                }
+            });
+            $("#map").html(map);
+            $("span.station").hover(function () {
+            $("#check").remove()
+            let Hoverid = $(this).data("id");
+            let element = $(this)
+            $.post("fetch/getBus.php",{Hoverid},function (res) {
+                element.append(`<div class="card shadow p-2" id="check">${res}</div>`)
+            })
+            },function () {
+                $("#check").remove()
+            })
+        });
+    }
+</script>
+</body>
+</html>
